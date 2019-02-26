@@ -16,8 +16,7 @@ import signal
 import time
 import copy
 import traceback
-
-TIME = 24
+TIME = 24000
 MAX_PTS = 86
 
 class TimedOutExc(Exception):
@@ -30,7 +29,6 @@ def handler(signum, frame):
 class Team7():
 	def __init__(self):
 		self.INF = 99999999999999999999
-		pass
 
 	def move(self, board, old_move, flag):
 		opp = 'o' if flag == 'x' else 'x'
@@ -38,42 +36,234 @@ class Team7():
 
 	def minimax(self, node, depth, is_max_player, alpha, beta, old_move, flag, opp):
 		
-		if (depth >= 2) or (node.find_terminal_state()[1] is not '-'):	# leaf node
-			return 69, (-1, -1, -1)
+		if (depth >= 2) or (node.find_terminal_state()[1] is not '-'):
+			return self.utility(node, flag, opp), (-1, -1, -1)
 
 		best = 0
-		best_move = (-1, -1, -1)
+		# print depth
+		# print old_move
+		# print "minimax"
+		# print node.print_board()
+		cells = node.find_valid_move_cells(old_move)
+		# print cells
+		# print "over---------"
+		best_move = cells[random.randrange(len(cells))]
 		
 		if is_max_player:
-			cells = node.find_valid_move_cells(old_move)
 			best = -self.INF
 			for c in cells:
-				node.big_boards_status[c[0]][c[1]][c[2]] = flag
-				val = self.minimax(node, depth + 1, False, alpha, beta, c, flag, opp)
+				temp = copy.deepcopy(node)
+				temp.update(old_move, c, flag)
+				val = self.minimax(temp, depth + 1, False, alpha, beta, c, flag, opp)
 				if val[0] > best:
 					best = val[0]
 					best_move = c
 				alpha = max(alpha, best)
-				node.big_boards_status[c[0]][c[1]][c[2]] = '-'
+				del temp
 				if beta <= alpha:
 					break
-
+				
 		else:
 			ply = 'o'
-			cells = node.find_valid_move_cells(old_move)
 			best = self.INF
 			for c in cells:
-				node.big_boards_status[c[0]][c[1]][c[2]] = opp
+				temp = copy.deepcopy(node)
+				temp.update(old_move, c, opp)
 				val = self.minimax(node, depth + 1, True, alpha, beta, c, flag, opp)
 				if best > val[0]:
 					best = val[0]
 					best_move = c
 				beta = min(beta, best)
-				node.big_boards_status[c[0]][c[1]][c[2]] = '-'
+				del temp
 				if beta <= alpha:
 					break
 
 		return best, best_move
+
+	def utility(self, board, flag, opp):
+		value = 0
+		sf = [[[0 for i in range(3)] for j in range(3)] for k in range(2)]
+		for k in range(2):
+			bs = board.small_boards_status[k]
+
+			# horizontal
+			for i in range(3):
+				cx = cd = co = 0
+				pd = []
+				for j in range(3):	
+					if bs[i][j] == flag:
+						cx += 1
+					elif bs[i][j] == opp:
+						co += 1
+					else:
+						cd += 1
+						pd.append(j)
+				if cx == 0 and cd == 3:
+					for ind in range(3):
+						sf[k][i][ind] = max(sf[k][i][ind], abs(random.random()-random.random()))
+				elif cx == 1 and cd == 2:
+					for ind in pd:
+						sf[k][i][ind] = max(sf[k][i][ind], 1)
+					value += 100
+				elif cx == 2 and cd == 1:
+					for ind in pd:
+						sf[k][i][ind] = max(sf[k][i][ind], 2)
+					value += 700
+				elif cx == 3:
+					for ind in pd:
+						sf[k][i][ind] = max(sf[k][i][ind], 3)
+					value += 5000
+				elif co == 0 and cd == 3:
+					for ind in range(3):
+						sf[k][i][ind] = min(sf[k][i][ind], -abs(random.random()-random.random()))
+				elif co == 1 and cd == 2:
+					for ind in pd:
+						sf[k][i][ind] = min(sf[k][i][ind], -1)
+					value += -100
+				elif co == 2 and cd == 1:
+					for ind in pd:
+						sf[k][i][ind] = min(sf[k][i][ind], -2)
+					value += -700
+				elif co == 3:
+					for ind in pd:
+						sf[k][i][ind] = min(sf[k][i][ind], -3)
+					value += -5000
+
+			# vertical
+			for i in range(3):
+				pd = []
+				cx = cd = co = 0
+				for j in range(3):
+					if bs[j][i] == flag:
+						cx += 1
+					elif bs[j][i] == opp:
+						co += 1
+					else:
+						pd.append(j)
+						cd += 1
+				if cx == 0 and cd == 3:
+					for ind in range(3):
+						sf[k][ind][i] = max(sf[k][ind][i], abs(random.random()-random.random()))
+				elif cx == 1 and cd == 2:
+					for ind in pd:
+						sf[k][ind][i] = max(sf[k][ind][i], 1)
+					value += 100
+				elif cx == 2 and cd == 1:
+					for ind in pd:
+						sf[k][ind][i] = max(sf[k][ind][i], 2)
+					value += 700
+				elif cx == 3:
+					for ind in pd:
+						sf[k][ind][i] = max(sf[k][ind][i], 3)
+					value += 5000
+				elif co == 0 and cd == 3:
+					for ind in range(3):
+						sf[k][ind][i] = min(sf[k][ind][i], -abs(random.random()-random.random()))
+				elif co == 1 and cd == 2:
+					for ind in pd:
+						sf[k][ind][i] = min(sf[k][ind][i], -1)
+					value += -100
+				elif co == 2 and cd == 1:
+					for ind in pd:
+						sf[k][ind][i] = min(sf[k][ind][i], -2)
+					value += -700
+				elif co == 3:
+					for ind in pd:
+						sf[k][ind][i] = min(sf[k][ind][i], -3)
+					value += -5000
+
+			# diagonals
+			cx = cd = co = 0
+			pd = []
+			for i in range(3):
+				if bs[i][i] == flag:
+					cx += 1
+				elif bs[i][i] == opp:
+					co += 1
+				else:
+					pd.append(i)
+					cd += 1
+			if cx == 0 and cd == 3:
+				for ind in pd:
+					sf[k][ind][ind] = max(sf[k][ind][ind], abs(random.random()-random.random()))
+			elif cx == 1 and cd == 2:
+				for ind in pd:
+					sf[k][ind][ind] = max(sf[k][ind][ind], 1)
+				value += 100
+			elif cx == 2 and cd == 1:
+				for ind in pd:
+					sf[k][ind][ind] = max(sf[k][ind][ind], 2)
+				value += 700
+			elif cx == 3:
+				for ind in pd:
+					sf[k][ind][ind] = max(sf[k][ind][ind], 3)
+				value += 5000
+			elif co == 0 and cd == 3:
+				for ind in pd:
+					sf[k][ind][ind] = min(sf[k][ind][ind], -abs(random.random()-random.random()))
+			elif co == 1 and cd == 2:
+				for ind in pd:
+					sf[k][ind][ind] = min(sf[k][ind][ind], -1)
+				value += -100
+			elif co == 2 and cd == 1:
+				for ind in pd:
+					sf[k][ind][ind] = min(sf[k][ind][ind], -2)
+				value += -700
+			elif co == 3:
+				for ind in pd:
+					sf[k][ind][ind] = min(sf[k][ind][ind], -3)
+				value += -5000
+			i = 0
+			j = 2
+			cx = cd = co = 0
+			pd = []
+			for t in range(3):
+				if bs[i][j] == flag:
+					cx += 1
+				elif bs[i][j] == opp:
+					co += 1
+				else:
+					pd.append((i,j))
+					cd += 1
+				i += 1
+				j -= 1
+			if cx == 0 and cd == 3:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], abs(random.random()-random.random()))
+			elif cx == 1 and cd == 2:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 1)
+				value += 100
+			elif cx == 2 and cd == 1:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 2)
+				value += 700
+			elif cx == 3:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 3)
+				value += 5000
+			elif co == 0 and cd == 3:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -abs(random.random()-random.random()))
+			elif co == 1 and cd == 2:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -1)
+				value += -100
+			elif co == 2 and cd == 1:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -2)
+				value += -700
+			elif co == 3:
+				for ind in pd:
+					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -3)
+				value += -5000
+			for i in range(3):
+				for j in range(3):
+					if sf[k][i][j] == 0:
+						sf[k][i][j] = abs(random.random()-random.random())
+
+		# print value
+		return value
 
 class Manual_Player:
 	def __init__(self):
@@ -84,6 +274,16 @@ class Manual_Player:
 		mvp = raw_input()
 		mvp = mvp.split()
 		return (int(mvp[0]), int(mvp[1]), int(mvp[2]))
+
+class Random_Player():
+	def __init__(self):
+		pass
+
+	def move(self, board, old_move, flag):
+		#You have to implement the move function with the same signature as this
+		#Find the list of valid cells allowed
+		cells = board.find_valid_move_cells(old_move)
+		return cells[random.randrange(len(cells))]
 
 class BigBoard:
 
@@ -127,8 +327,10 @@ class BigBoard:
 		allowed_cells = []
 		allowed_small_board = [old_move[1]%3, old_move[2]%3]
 		#checks if the move is a free move or not based on the rules
-
+		# print "valiiilk"
+		# print old_move
 		if old_move == (-1,-1,-1) or (self.small_boards_status[0][allowed_small_board[0]][allowed_small_board[1]] != '-' and self.small_boards_status[1][allowed_small_board[0]][allowed_small_board[1]] != '-'):
+			# print "open hai"
 			for k in range(2):
 				for i in range(9):
 					for j in range(9):
@@ -136,6 +338,7 @@ class BigBoard:
 							allowed_cells.append((k,i,j))
 
 		else:
+			# print "cloae hai"
 			for k in range(2):
 				if self.small_boards_status[k][allowed_small_board[0]][allowed_small_board[1]] == "-":
 					for i in range(3*allowed_small_board[0], 3*allowed_small_board[0]+3):
@@ -143,7 +346,7 @@ class BigBoard:
 							if self.big_boards_status[k][i][j] == '-':
 								allowed_cells.append((k,i,j))
 
-		return allowed_cells	
+		return allowed_cells
 
 	def find_terminal_state(self):
 		#checks if the game is over(won or drawn) and returns the player who have won the game or the player who has higher small_boards in case of a draw
@@ -184,6 +387,7 @@ class BigBoard:
 
 	def check_valid_move(self, old_move, new_move):
 		#checks if a move is valid or not given the last move
+		# print new_move
 		if (len(old_move) != 3) or (len(new_move) != 3):
 			return False
 		for i in range(3):
@@ -405,8 +609,9 @@ if __name__ == '__main__':
 		obj2 = Team7()
 
 	elif option == '2':
-		obj1 = Manual_Player()
+		obj1 = Random_Player()
 		obj2 = Team7()
+
 	elif option == '3':
 		obj1 = Manual_Player()
 		obj2 = Manual_Player()
