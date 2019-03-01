@@ -16,6 +16,9 @@ import signal
 import time
 import copy
 import traceback
+
+sys.path.insert(0, './opponents')
+from newbeg1 import Team162
 TIME = 24000
 MAX_PTS = 86
 
@@ -32,29 +35,25 @@ class Team7():
 
 	def move(self, board, old_move, flag):
 		opp = 'o' if flag == 'x' else 'x'
-		return self.minimax(board, 0, True, -self.INF, self.INF, old_move, flag, opp)[1]
+		return self.minimax(board, 0, True, -self.INF, self.INF, old_move, flag, opp, 4)[1]
 
-	def minimax(self, node, depth, is_max_player, alpha, beta, old_move, flag, opp):
-		
-		if (depth >= 2) or (node.find_terminal_state()[1] is not '-'):
+	def minimax(self, node, depth, is_max_player, alpha, beta, old_move, flag, opp, max_depth):
+
+		if (depth >= max_depth) or (node.find_terminal_state()[1] is not '-'):
 			return self.utility(node, flag, opp), (-1, -1, -1)
 
 		best = 0
-		# print depth
-		# print old_move
-		# print "minimax"
-		# print node.print_board()
 		cells = node.find_valid_move_cells(old_move)
-		# print cells
-		# print "over---------"
 		best_move = cells[random.randrange(len(cells))]
+		if len(cells) > 18:
+			max_depth = depth + 1
 		
 		if is_max_player:
 			best = -self.INF
 			for c in cells:
 				temp = copy.deepcopy(node)
 				temp.update(old_move, c, flag)
-				val = self.minimax(temp, depth + 1, False, alpha, beta, c, flag, opp)
+				val = self.minimax(temp, depth + 1, False, alpha, beta, c, flag, opp, max_depth)
 				if val[0] > best:
 					best = val[0]
 					best_move = c
@@ -64,12 +63,11 @@ class Team7():
 					break
 				
 		else:
-			ply = 'o'
 			best = self.INF
 			for c in cells:
 				temp = copy.deepcopy(node)
 				temp.update(old_move, c, opp)
-				val = self.minimax(node, depth + 1, True, alpha, beta, c, flag, opp)
+				val = self.minimax(temp, depth + 1, True, alpha, beta, c, flag, opp, max_depth)
 				if best > val[0]:
 					best = val[0]
 					best_move = c
@@ -78,11 +76,12 @@ class Team7():
 				if beta <= alpha:
 					break
 
+		if depth == 1: print old_move, best, best_move
 		return best, best_move
 
 	def utility(self, board, flag, opp):
 		value = 0
-		sf = [[[0 for i in range(3)] for j in range(3)] for k in range(2)]
+		sf = [[[1 for i in range(3)] for j in range(3)] for k in range(2)]
 		for k in range(2):
 			bs = board.small_boards_status[k]
 
@@ -98,36 +97,37 @@ class Team7():
 					else:
 						cd += 1
 						pd.append(j)
-				if cx == 0 and cd == 3:
-					for ind in range(3):
-						sf[k][i][ind] = max(sf[k][i][ind], abs(random.random()-random.random()))
-				elif cx == 1 and cd == 2:
+				if cx == 1 and cd == 2:
 					for ind in pd:
-						sf[k][i][ind] = max(sf[k][i][ind], 1)
+						sf[k][i][ind] = max(sf[k][i][ind], 2)
 					value += 100
 				elif cx == 2 and cd == 1:
 					for ind in pd:
-						sf[k][i][ind] = max(sf[k][i][ind], 2)
+						sf[k][i][ind] = max(sf[k][i][ind], 3)
 					value += 700
+				elif cx == 2 and co == 1:
+					value += -1000
 				elif cx == 3:
 					for ind in pd:
-						sf[k][i][ind] = max(sf[k][i][ind], 3)
-					value += 5000
-				elif co == 0 and cd == 3:
-					for ind in range(3):
-						sf[k][i][ind] = min(sf[k][i][ind], -abs(random.random()-random.random()))
+						sf[k][i][ind] = max(sf[k][i][ind], 4)
+					value += 50000
 				elif co == 1 and cd == 2:
 					for ind in pd:
-						sf[k][i][ind] = min(sf[k][i][ind], -1)
+						sf[k][i][ind] = min(sf[k][i][ind], -2)
 					value += -100
 				elif co == 2 and cd == 1:
 					for ind in pd:
-						sf[k][i][ind] = min(sf[k][i][ind], -2)
+						sf[k][i][ind] = min(sf[k][i][ind], -3)
 					value += -700
+				elif co == 2 and cx == 1:
+					value += 1500
 				elif co == 3:
 					for ind in pd:
-						sf[k][i][ind] = min(sf[k][i][ind], -3)
-					value += -5000
+						sf[k][i][ind] = min(sf[k][i][ind], -4)
+					value += -50000
+				# elif cd == 3:
+					# for ind in range(3):
+						# sf[k][i][ind] = 1 if (sf[k][i][ind] == 0) else sf[k][i][ind]
 
 			# vertical
 			for i in range(3):
@@ -141,36 +141,37 @@ class Team7():
 					else:
 						pd.append(j)
 						cd += 1
-				if cx == 0 and cd == 3:
-					for ind in range(3):
-						sf[k][ind][i] = max(sf[k][ind][i], abs(random.random()-random.random()))
-				elif cx == 1 and cd == 2:
+				if cx == 1 and cd == 2:
 					for ind in pd:
-						sf[k][ind][i] = max(sf[k][ind][i], 1)
+						sf[k][ind][i] = max(sf[k][ind][i], 2)
 					value += 100
 				elif cx == 2 and cd == 1:
 					for ind in pd:
-						sf[k][ind][i] = max(sf[k][ind][i], 2)
+						sf[k][ind][i] = max(sf[k][ind][i], 3)
 					value += 700
+				elif cx == 2 and co == 1:
+					value += -1000
 				elif cx == 3:
 					for ind in pd:
-						sf[k][ind][i] = max(sf[k][ind][i], 3)
-					value += 5000
-				elif co == 0 and cd == 3:
-					for ind in range(3):
-						sf[k][ind][i] = min(sf[k][ind][i], -abs(random.random()-random.random()))
+						sf[k][ind][i] = max(sf[k][ind][i], 4)
+					value += 50000
 				elif co == 1 and cd == 2:
 					for ind in pd:
-						sf[k][ind][i] = min(sf[k][ind][i], -1)
+						sf[k][ind][i] = min(sf[k][ind][i], -2)
 					value += -100
 				elif co == 2 and cd == 1:
 					for ind in pd:
-						sf[k][ind][i] = min(sf[k][ind][i], -2)
+						sf[k][ind][i] = min(sf[k][ind][i], -3)
 					value += -700
+				elif co == 2 and cx == 1:
+					value += 1500
 				elif co == 3:
 					for ind in pd:
-						sf[k][ind][i] = min(sf[k][ind][i], -3)
-					value += -5000
+						sf[k][ind][i] = min(sf[k][ind][i], -4)
+					value += -50000
+				# elif cd == 3:
+				# 	for ind in range(3):
+				# 		sf[k][i][ind] = 1 if (sf[k][i][ind] == 0) else sf[k][i][ind]
 
 			# diagonals
 			cx = cd = co = 0
@@ -183,36 +184,37 @@ class Team7():
 				else:
 					pd.append(i)
 					cd += 1
-			if cx == 0 and cd == 3:
+			if cx == 1 and cd == 2:
 				for ind in pd:
-					sf[k][ind][ind] = max(sf[k][ind][ind], abs(random.random()-random.random()))
-			elif cx == 1 and cd == 2:
-				for ind in pd:
-					sf[k][ind][ind] = max(sf[k][ind][ind], 1)
+					sf[k][ind][ind] = max(sf[k][ind][ind], 2)
 				value += 100
 			elif cx == 2 and cd == 1:
 				for ind in pd:
-					sf[k][ind][ind] = max(sf[k][ind][ind], 2)
+					sf[k][ind][ind] = max(sf[k][ind][ind], 3)
 				value += 700
+			elif cx == 2 and co == 1:
+					value += -1000
 			elif cx == 3:
 				for ind in pd:
-					sf[k][ind][ind] = max(sf[k][ind][ind], 3)
-				value += 5000
-			elif co == 0 and cd == 3:
-				for ind in pd:
-					sf[k][ind][ind] = min(sf[k][ind][ind], -abs(random.random()-random.random()))
+					sf[k][ind][ind] = max(sf[k][ind][ind], 4)
+				value += 50000
 			elif co == 1 and cd == 2:
 				for ind in pd:
-					sf[k][ind][ind] = min(sf[k][ind][ind], -1)
+					sf[k][ind][ind] = min(sf[k][ind][ind], -2)
 				value += -100
 			elif co == 2 and cd == 1:
 				for ind in pd:
-					sf[k][ind][ind] = min(sf[k][ind][ind], -2)
+					sf[k][ind][ind] = min(sf[k][ind][ind], -3)
 				value += -700
+			elif co == 2 and cx == 1:
+					value += 1500
 			elif co == 3:
 				for ind in pd:
-					sf[k][ind][ind] = min(sf[k][ind][ind], -3)
-				value += -5000
+					sf[k][ind][ind] = min(sf[k][ind][ind], -4)
+				value += -50000
+			# elif cd == 3:
+				# for ind in pd:
+					# sf[k][i][ind] = 1 if (sf[k][i][ind] == 0) else sf[k][i][ind]
 			i = 0
 			j = 2
 			cx = cd = co = 0
@@ -227,53 +229,188 @@ class Team7():
 					cd += 1
 				i += 1
 				j -= 1
-			if cx == 0 and cd == 3:
+			if cx == 1 and cd == 2:
 				for ind in pd:
-					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], abs(random.random()-random.random()))
-			elif cx == 1 and cd == 2:
-				for ind in pd:
-					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 1)
+					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 2)
 				value += 100
 			elif cx == 2 and cd == 1:
 				for ind in pd:
-					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 2)
+					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 3)
 				value += 700
+			elif cx == 2 and co == 1:
+					value += -1000
 			elif cx == 3:
 				for ind in pd:
-					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 3)
-				value += 5000
-			elif co == 0 and cd == 3:
-				for ind in pd:
-					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -abs(random.random()-random.random()))
+					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 4)
+				value += 50000
 			elif co == 1 and cd == 2:
 				for ind in pd:
-					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -1)
+					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -2)
 				value += -100
 			elif co == 2 and cd == 1:
 				for ind in pd:
-					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -2)
+					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -3)
 				value += -700
+			elif co == 2 and cx == 1:
+					value += 1500
 			elif co == 3:
 				for ind in pd:
-					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -3)
-				value += -5000
-			for i in range(3):
-				for j in range(3):
-					if sf[k][i][j] == 0:
-						sf[k][i][j] = abs(random.random()-random.random())
+					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -4)
+				value += -50000
+			# elif cd == 3:
+			# 	for ind in pd:
+			# 		sf[k][ind[0]][ind[1]] = 1 if (sf[k][ind[0]][ind[1]] == 0) else sf[k][ind[0]][ind[1]]
+			# for i in range(3):
+			# 	for j in range(3):
+			# 		if sf[k][i][j] == 0:
+			# 			sf[k][i][j] = abs(random.random()-random.random())
 
+			bs = board.big_boards_status[k]
+			for x in range(0,9,3):
+				for y in range(0,9,3):
+					scf = sf[k][x/3][y/3]
+					scf = 1
+					# horizontal
+					for i in range(x,x+3):
+						cx = co = cd = 0
+						for j in range(y,y+3):
+							if bs[i][j] == flag:
+								cx += 1
+							elif bs[i][j] == opp:
+								co += 1
+							else:
+								cd += 1
+						if cx == 1 and cd == 2:
+							pass
+							# value += scf * 0.1
+						elif cx == 2 and cd == 1:
+							value += scf * 5
+						elif cx == 2 and co == 1:
+							value += -20
+						elif cx == 3:
+							value += scf * 35
+						elif co == 1 and cd == 2:
+							pass
+							# value += -scf * 0.1
+						elif co == 2 and cd == 1:
+							value += -scf * 5
+						elif co == 2 and cx == 1:
+							value += 20
+						elif co == 3:
+							value += -scf * 35
+						# elif cd == 3:
+							# value += scf * random.random() * 0.05
+					# print value
+					# vertical
+					for i in range(x,x+3):
+						cx = cd = co = 0
+						for j in range(y,y+3):
+							if bs[j][i] == flag:
+								cx += 1
+							elif bs[j][i] == opp:
+								co += 1
+							else:
+								cd += 1
+						if cx == 1 and cd == 2:
+							pass
+							# value += scf * 0.1
+						elif cx == 2 and cd == 1:
+							value += scf * 5
+						elif cx == 2 and co == 1:
+							value += -20
+						elif cx == 3:
+							value += scf * 35
+						elif co == 1 and cd == 2:
+							pass
+							# value += -scf * 0.1
+						elif co == 2 and cd == 1:
+							value += -scf * 5
+						elif co == 2 and cx == 1:
+							value += 20
+						elif co == 3:
+							value += -scf * 35
+						# elif cd == 3:
+							# value += scf * random.random() * 0.05
+					# print value
+					cx = cd = co = 0
+					i = x
+					j = y
+					for t in range(3):
+						if bs[i][j] == flag:
+							cx += 1
+						elif bs[i][j] == opp:
+							co += 1
+						else:
+							cd += 1
+						i += 1
+						j += 1
+					if cx == 1 and cd == 2:
+						pass
+						# value += scf * 0.1
+					elif cx == 2 and cd == 1:
+						value += scf * 5
+					elif cx == 2 and co == 1:
+						value += -20
+					elif cx == 3:
+						value += scf * 35
+					elif co == 1 and cd == 2:
+						pass
+						# value += -scf * 0.1
+					elif co == 2 and cd == 1:
+						value += -scf * 5
+					elif co == 2 and cx == 1:
+						value += 20
+					elif co == 3:
+						value += -scf * 35
+					# elif cd == 3:
+						# value += scf * random.random() * 0.05
+					# print value
+					cx = cd = co = 0
+					i = x
+					j = y + 2
+					for t in range(3):
+						if bs[i][j] == flag:
+							cx += 1
+						elif bs[i][j] == opp:
+							co += 1
+						else:
+							cd += 1
+						i += 1
+						j -= 1
+					if cx == 1 and cd == 2:
+						pass
+						# value += scf * 0.1
+					elif cx == 2 and cd == 1:
+						value += scf * 5
+					elif cx == 2 and co == 1:
+						value += -20
+					elif cx == 3:
+						value += scf * 35
+					elif co == 1 and cd == 2:
+						pass
+						# value += -scf * 0.1
+					elif co == 2 and cd == 1:
+						value += -scf * 5
+					elif co == 2 and cx == 1:
+						value += 50
+					elif co == 3:
+						value += -scf * 35
+					# elif cd == 3:
+						# value += scf * random.random() * 0.05
+					# print value
+					# print '-----------------'
 		# print value
 		return value
 
-class Manual_Player:
-	def __init__(self):
-		pass
+# class Manual_Player:
+# 	def __init__(self):
+# 		pass
 
-	def move(self, board, old_move, flag):
-		print 'Enter your move: <format:board row column> (you\'re playing with', flag + ")"	
-		mvp = raw_input()
-		mvp = mvp.split()
-		return (int(mvp[0]), int(mvp[1]), int(mvp[2]))
+# 	def move(self, board, old_move, flag):
+# 		print 'Enter your move: <format:board row column> (you\'re playing with', flag + ")"	
+# 		mvp = raw_input()
+# 		mvp = mvp.split()
+# 		return (int(mvp[0]), int(mvp[1]), int(mvp[2]))
 
 class Random_Player():
 	def __init__(self):
@@ -506,6 +643,7 @@ def gameplay(obj1, obj2):				#game simulator
 	signal.signal(signal.SIGALRM, handler)
 	while(1):
 		#player 1 turn
+		# rrr = raw_input()
 		p1_move, WINNER, MESSAGE, pts1, pts2, to_break, small_board_won = player_turn(game_board, old_move, obj1, "P1", "P2", fl1)
 
 		if to_break:
@@ -515,15 +653,17 @@ def gameplay(obj1, obj2):				#game simulator
 		game_board.print_board()
 
 		if small_board_won:
+			# rrr = raw_input()
 			p1_move, WINNER, MESSAGE, pts1, pts2, to_break, small_board_won = player_turn(game_board, old_move, obj1, "P1", "P2", fl1)
 		
 			if to_break:
 				break
 		
 			old_move = p1_move
-			game_board.print_board()			
+			game_board.print_board()		
 
 		#do the same thing for player 2
+		# rrr = raw_input()
 		p2_move, WINNER, MESSAGE, pts1, pts2, to_break, small_board_won = player_turn(game_board, old_move, obj2, "P2", "P1", fl2)
 
 		if to_break:
@@ -533,6 +673,7 @@ def gameplay(obj1, obj2):				#game simulator
 		old_move = p2_move
 
 		if small_board_won:
+			# rrr = raw_input()
 			p2_move, WINNER, MESSAGE, pts1, pts2, to_break, small_board_won = player_turn(game_board, old_move, obj2, "P2", "P1", fl2)
 		
 			if to_break:
@@ -609,11 +750,11 @@ if __name__ == '__main__':
 		obj2 = Team7()
 
 	elif option == '2':
-		obj1 = Random_Player()
-		obj2 = Team7()
+		obj1 = Team7()
+		obj2 = Team162()
 
 	elif option == '3':
-		obj1 = Manual_Player()
+		obj1 = Team7()
 		obj2 = Manual_Player()
 	else:
 		print 'Invalid option'
