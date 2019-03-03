@@ -18,6 +18,8 @@ import copy
 import traceback
 
 sys.path.insert(0, './opponents')
+from sara3 import Team
+from team113 import Team11
 from newbeg1 import Team162
 TIME = 24000
 MAX_PTS = 86
@@ -76,7 +78,7 @@ class Team7():
 				if beta <= alpha:
 					break
 
-		if depth == 1: print old_move, best, best_move
+		# if depth == 1: print old_move, best, best_move
 		return best, best_move
 
 	def utility(self, board, flag, opp):
@@ -104,9 +106,9 @@ class Team7():
 				elif cx == 2 and cd == 1:
 					for ind in pd:
 						sf[k][i][ind] = max(sf[k][i][ind], 3)
-					value += 700
+					value += 1000
 				elif cx == 2 and co == 1:
-					value += -1000
+					value += -1500
 				elif cx == 3:
 					for ind in pd:
 						sf[k][i][ind] = max(sf[k][i][ind], 4)
@@ -114,13 +116,13 @@ class Team7():
 				elif co == 1 and cd == 2:
 					for ind in pd:
 						sf[k][i][ind] = min(sf[k][i][ind], -2)
-					value += -100
+					value += -200
 				elif co == 2 and cd == 1:
 					for ind in pd:
 						sf[k][i][ind] = min(sf[k][i][ind], -3)
-					value += -700
+					value += -1000
 				elif co == 2 and cx == 1:
-					value += 1500
+					value += 2000
 				elif co == 3:
 					for ind in pd:
 						sf[k][i][ind] = min(sf[k][i][ind], -4)
@@ -148,9 +150,9 @@ class Team7():
 				elif cx == 2 and cd == 1:
 					for ind in pd:
 						sf[k][ind][i] = max(sf[k][ind][i], 3)
-					value += 700
+					value += 1000
 				elif cx == 2 and co == 1:
-					value += -1000
+					value += -1500
 				elif cx == 3:
 					for ind in pd:
 						sf[k][ind][i] = max(sf[k][ind][i], 4)
@@ -158,13 +160,13 @@ class Team7():
 				elif co == 1 and cd == 2:
 					for ind in pd:
 						sf[k][ind][i] = min(sf[k][ind][i], -2)
-					value += -100
+					value += -200
 				elif co == 2 and cd == 1:
 					for ind in pd:
 						sf[k][ind][i] = min(sf[k][ind][i], -3)
-					value += -700
+					value += -1000
 				elif co == 2 and cx == 1:
-					value += 1500
+					value += 2000
 				elif co == 3:
 					for ind in pd:
 						sf[k][ind][i] = min(sf[k][ind][i], -4)
@@ -191,9 +193,9 @@ class Team7():
 			elif cx == 2 and cd == 1:
 				for ind in pd:
 					sf[k][ind][ind] = max(sf[k][ind][ind], 3)
-				value += 700
+				value += 1000
 			elif cx == 2 and co == 1:
-					value += -1000
+					value += -1500
 			elif cx == 3:
 				for ind in pd:
 					sf[k][ind][ind] = max(sf[k][ind][ind], 4)
@@ -201,13 +203,13 @@ class Team7():
 			elif co == 1 and cd == 2:
 				for ind in pd:
 					sf[k][ind][ind] = min(sf[k][ind][ind], -2)
-				value += -100
+				value += -200
 			elif co == 2 and cd == 1:
 				for ind in pd:
 					sf[k][ind][ind] = min(sf[k][ind][ind], -3)
-				value += -700
+				value += -1000
 			elif co == 2 and cx == 1:
-					value += 1500
+					value += 2000
 			elif co == 3:
 				for ind in pd:
 					sf[k][ind][ind] = min(sf[k][ind][ind], -4)
@@ -236,9 +238,9 @@ class Team7():
 			elif cx == 2 and cd == 1:
 				for ind in pd:
 					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 3)
-				value += 700
+				value += 1000
 			elif cx == 2 and co == 1:
-					value += -1000
+					value += -1500
 			elif cx == 3:
 				for ind in pd:
 					sf[k][ind[0]][ind[1]] = max(sf[k][ind[0]][ind[1]], 4)
@@ -246,13 +248,13 @@ class Team7():
 			elif co == 1 and cd == 2:
 				for ind in pd:
 					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -2)
-				value += -100
+				value += -200
 			elif co == 2 and cd == 1:
 				for ind in pd:
 					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -3)
-				value += -700
+				value += -1000
 			elif co == 2 and cx == 1:
-					value += 1500
+					value += 2000
 			elif co == 3:
 				for ind in pd:
 					sf[k][ind[0]][ind[1]] = min(sf[k][ind[0]][ind[1]], -4)
@@ -287,17 +289,17 @@ class Team7():
 							value += scf * 5
 						elif cx == 2 and co == 1:
 							value += -20
-						elif cx == 3:
-							value += scf * 35
+						# elif cx == 3:
+							# value += scf * 35
 						elif co == 1 and cd == 2:
 							pass
 							# value += -scf * 0.1
 						elif co == 2 and cd == 1:
-							value += -scf * 5
+							value += -scf * 20
 						elif co == 2 and cx == 1:
 							value += 20
-						elif co == 3:
-							value += -scf * 35
+						# elif co == 3:
+							# value += -scf * 35
 						# elif cd == 3:
 							# value += scf * random.random() * 0.05
 					# print value
@@ -318,17 +320,17 @@ class Team7():
 							value += scf * 5
 						elif cx == 2 and co == 1:
 							value += -20
-						elif cx == 3:
-							value += scf * 35
+						# elif cx == 3:
+							# value += scf * 35
 						elif co == 1 and cd == 2:
 							pass
 							# value += -scf * 0.1
 						elif co == 2 and cd == 1:
-							value += -scf * 5
+							value += -scf * 20
 						elif co == 2 and cx == 1:
 							value += 20
-						elif co == 3:
-							value += -scf * 35
+						# elif co == 3:
+							# value += -scf * 35
 						# elif cd == 3:
 							# value += scf * random.random() * 0.05
 					# print value
@@ -351,17 +353,17 @@ class Team7():
 						value += scf * 5
 					elif cx == 2 and co == 1:
 						value += -20
-					elif cx == 3:
-						value += scf * 35
+					# elif cx == 3:
+						# value += scf * 35
 					elif co == 1 and cd == 2:
 						pass
 						# value += -scf * 0.1
 					elif co == 2 and cd == 1:
-						value += -scf * 5
+						value += -scf * 20
 					elif co == 2 and cx == 1:
 						value += 20
-					elif co == 3:
-						value += -scf * 35
+					# elif co == 3:
+						# value += -scf * 35
 					# elif cd == 3:
 						# value += scf * random.random() * 0.05
 					# print value
@@ -384,17 +386,17 @@ class Team7():
 						value += scf * 5
 					elif cx == 2 and co == 1:
 						value += -20
-					elif cx == 3:
-						value += scf * 35
+					# elif cx == 3:
+						# value += scf * 35
 					elif co == 1 and cd == 2:
 						pass
 						# value += -scf * 0.1
 					elif co == 2 and cd == 1:
-						value += -scf * 5
+						value += -scf * 20
 					elif co == 2 and cx == 1:
 						value += 50
-					elif co == 3:
-						value += -scf * 35
+					# elif co == 3:
+						# value += -scf * 35
 					# elif cd == 3:
 						# value += scf * random.random() * 0.05
 					# print value
@@ -410,7 +412,7 @@ class Team7():
 # 		print 'Enter your move: <format:board row column> (you\'re playing with', flag + ")"	
 # 		mvp = raw_input()
 # 		mvp = mvp.split()
-# 		return (int(mvp[0]), int(mvp[1]), int(mvp[2]))
+# 		return (int(mvp[0]), int(mvp[1]), ++++++++++++++++++++int(mvp[2]))
 
 class Random_Player():
 	def __init__(self):
@@ -745,17 +747,23 @@ if __name__ == '__main__':
 	obj1 = ''
 	obj2 = ''
 	option = sys.argv[1]	
+	
 	if option == '1':
 		obj1 = Team7()
 		obj2 = Team7()
 
 	elif option == '2':
 		obj1 = Team7()
-		obj2 = Team162()
+		obj2 = Team()
 
 	elif option == '3':
 		obj1 = Team7()
-		obj2 = Manual_Player()
+		obj2 = Team11()
+
+	elif option == '4':
+		obj1 = Team7()
+		obj2 = Team162()
+
 	else:
 		print 'Invalid option'
 		sys.exit(1)
