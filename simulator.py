@@ -16,7 +16,13 @@ import signal
 import time
 import copy
 import traceback
-
+sys.path.insert(0, './opponents')
+from team7 import Team7
+from sanchit import Team41
+from team47 import Team47
+from sara3 import Team
+from team11 import Team11
+from anrav import Team1657
 TIME = 24
 MAX_PTS = 86
 
@@ -369,8 +375,8 @@ if __name__ == '__main__':
 		obj1 = Manual_Player()
 		obj2 = Random_Player()
 	elif option == '3':
-		obj1 = Manual_Player()
-		obj2 = Manual_Player()
+		obj1 = Team7()
+		obj2 = Team1657()
 	else:
 		print 'Invalid option'
 		sys.exit(1)
