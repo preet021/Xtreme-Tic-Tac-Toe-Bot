@@ -3,6 +3,7 @@ import random
 import copy
 
 class Team7():
+
 	def __init__(self):
 		self.INF = 99999999999999999999
 		self.t = 0
@@ -13,20 +14,28 @@ class Team7():
 		return self.minimax(board, 0, True, -self.INF, self.INF, old_move, flag, opp, 5)[1]
 
 	def minimax(self, node, depth, is_max_player, alpha, beta, old_move, flag, opp, max_depth):
-
 		if (depth >= max_depth) or (node.find_terminal_state()[1] is not '-') or (time.time() - self.t > 23.9):
 			return self.utility(node, flag, opp), (-1, -1, -1)
 
-		best = 0
 		cells = node.find_valid_move_cells(old_move)
+		ordered_moves = []
+		best = 0
 		best_move = cells[random.randrange(len(cells))]
 		
-		if len(cells) > 18:
+		if len(cells) > 18: # open move
 			max_depth = depth + 1
 		
 		if is_max_player:
-			best = -self.INF
+			
 			for c in cells:
+				temp = copy.deepcopy(node)
+				temp.update(old_move, c, flag)
+				ordered_moves.append([self.utility(temp, flag, opp), c])
+			ordered_moves.sort(reverse=True)
+
+			best = -self.INF
+			for m in ordered_moves:
+				c = m[1]
 				temp = copy.deepcopy(node)
 				temp.update(old_move, c, flag)
 				val = self.minimax(temp, depth + 1, False, alpha, beta, c, flag, opp, max_depth)
@@ -39,8 +48,16 @@ class Team7():
 					break
 				
 		else:
-			best = self.INF
+
 			for c in cells:
+				temp = copy.deepcopy(node)
+				temp.update(old_move, c, opp)
+				ordered_moves.append([self.utility(temp, flag, opp), c])
+			ordered_moves.sort()
+			
+			best = self.INF
+			for m in ordered_moves:
+				c = m[1]
 				temp = copy.deepcopy(node)
 				temp.update(old_move, c, opp)
 				val = self.minimax(temp, depth + 1, True, alpha, beta, c, flag, opp, max_depth)
@@ -52,6 +69,7 @@ class Team7():
 				if beta <= alpha:
 					break
 
+		del ordered_moves
 		return best, best_move
 
 	def utility(self, board, flag, opp):
